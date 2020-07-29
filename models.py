@@ -14,7 +14,7 @@ class MyDRN(nn.Module):
 
     def __init__(self):
         super(MyDRN, self).__init__()
-
+        self.device = self._get_device()
         # conv_1
         self.zeropad = nn.ZeroPad2d(padding=3)
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=7, stride=2,
@@ -67,6 +67,12 @@ class MyDRN(nn.Module):
         self.convfeat = nn.Conv2d(in_channels=2048, out_channels=512, kernel_size=3, stride=1,
                  padding=1, dilation=1, groups=1, bias=False)
 
+    def _get_device(self):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Running on:", device)
+        return device
+
+
     def forward(self, x):
 
         # layer_1
@@ -112,6 +118,8 @@ class MyIdentityBlock(nn.Module):
 
     def __init__(self,kernel_size, filters, in_channel, dilation, padding):
         super(MyIdentityBlock, self).__init__()
+        self.device = self._get_device()
+
         nb_filter1, nb_filter2, nb_filter3 = filters
         self.conv1 = nn.Conv2d(in_channels=in_channel, out_channels=nb_filter1, kernel_size=1, stride=1,
                  padding=0, dilation=1, groups=1, bias=False)
@@ -123,6 +131,13 @@ class MyIdentityBlock(nn.Module):
         self.conv3 = nn.Conv2d(in_channels=nb_filter2, out_channels=nb_filter3, kernel_size=1, stride=1,
                             padding=0, dilation=1, groups=1, bias=False)
         self.bn3 = nn.BatchNorm2d(nb_filter3)
+
+
+    def _get_device(self):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Running on:", device)
+        return device
+
 
     def forward(self, x):
 
@@ -148,7 +163,10 @@ class MyIdentityBlock(nn.Module):
 class MyConvBlock(nn.Module):
 
     def __init__(self, kernel_size, filters, stride, in_channel, dilation, padding):
+
         super(MyConvBlock, self).__init__()
+        self.device = self._get_device()
+
         nb_filter1, nb_filter2, nb_filter3 = filters
         self.conv1 = nn.Conv2d(in_channels=in_channel, out_channels=nb_filter1, kernel_size=1, stride=stride,
                                padding=0, dilation=1, groups=1, bias=False)
@@ -162,6 +180,12 @@ class MyConvBlock(nn.Module):
         self.bn3 = nn.BatchNorm2d(nb_filter3)
         self.shortcut = nn.Conv2d(in_channels=in_channel, out_channels=nb_filter3, kernel_size=1, stride=stride,
                                   padding=0, dilation=1, groups=1, bias=False)
+
+
+    def _get_device(self):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Running on:", device)
+        return device
 
     def forward(self, x):
 
@@ -191,6 +215,7 @@ class MyAttentiveLSTM(nn.Module):
 
     def __init__(self, nb_features_in, nb_features_out, nb_features_att, nb_rows, nb_cols):
         super(MyAttentiveLSTM, self).__init__()
+        self.device = self._get_device()
 
         # define the fundamantal parameters
         self.nb_features_in = nb_features_in
@@ -235,6 +260,13 @@ class MyAttentiveLSTM(nn.Module):
         # define number of temporal steps
         self.nb_ts = nb_timestep
 
+
+
+    def _get_device(self):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Running on:", device)
+        return device
+
     def forward(self, x):
 
         # gain the current cell memory and hidden state
@@ -272,10 +304,18 @@ class MyPriors(nn.Module):
 
     def __init__(self, gp):
         super(MyPriors, self).__init__()
+        self.device = self._get_device()
+
         self.conv5_5 = nn.Conv2d(in_channels=(512+nb_gaussian), out_channels=512, kernel_size=5,
                                stride=1, padding=8, dilation=4, groups=1, bias=False)
         self.relu = nn.ReLU(inplace=True)
         self.gp = gp
+
+
+    def _get_device(self):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Running on:", device)
+        return device
 
     def forward(self, x):
 
@@ -315,11 +355,11 @@ def generate_gaussian_prior():
 
     # randomly initialize gaussian distribution along X and Y in each of the feature map
     for gr in range(nb_gaussian):
-        gaussian_cur = cv2.getGaussianKernel(shape_r_f, sigma_x[gr, 0])
+        gaussian_cur = cv2.getGaussianKernel(shape_r_f, float(sigma_x[gr, 0]))
         gaussian_cur = torch.from_numpy(gaussian_cur)
         f_r[:, gr] = gaussian_cur[:, 0]
     for gc in range(nb_gaussian):
-        gaussian_cur = cv2.getGaussianKernel(shape_c_f, sigma_y[gc, 0])
+        gaussian_cur = cv2.getGaussianKernel(shape_c_f, float(sigma_y[gc, 0]) )
         gaussian_cur = torch.from_numpy(gaussian_cur)
         f_c[:, gc] = gaussian_cur[:, 0]
 
@@ -365,6 +405,14 @@ class MyDiceCoef(nn.Module):
 
     def __init__(self, size_average=None, reduce=None, reduction='mean'):
         super(MyDiceCoef, self).__init__()
+        self.device = self._get_device()
+
+
+
+    def _get_device(self):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Running on:", device)
+        return device
 
     def forward(self, input, target):
 
@@ -388,6 +436,14 @@ class MyCorrCoef(nn.Module):
 
     def __init__(self, size_average=None, reduce=None, reduction='mean'):
         super(MyCorrCoef, self).__init__()
+        self.device = self._get_device()
+
+
+
+    def _get_device(self):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Running on:", device)
+        return device
 
     def forward(self, input, target):
 
@@ -413,29 +469,44 @@ class MyNormScanSali(nn.Module):
 
     def __init__(self, size_average=None, reduce=None, reduction='mean'):
         super(MyNormScanSali, self).__init__()
+        self.device = self._get_device()
+
+
+    def _get_device(self):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Running on:", device)
+        return device
 
     def forward(self, input, target):
 
-        input = input.view(input.size(0), -1)
-        target = target.view(target.size(0), -1)
+        mi = input.view(input.size(0), 1, -1).mean(axis=2)
+        std = input.view(input.size(0), 1, -1).std(axis=2)
+        return torch.mean((input - mi[:,:, None, None]) / std[:,:, None, None] * target)
 
-        NSS = []
-        target_logic = torch.zeros(b_s, shape_r_out * shape_c_out )
 
-        for i in range(b_s):
-
-            # normalize the predicted maps
-            input_norm = (input[i] - torch.mean(input[i])) / torch.std(input[i])
-
-            # compute the logic matrix of fixs
-            for m in range(shape_r_out * shape_c_out):
-                if target[i,m] != 0:
-                    target_logic[i,m] = 1
-
-            NSS.append(torch.mean(torch.mul(input_norm, target_logic[i])))
-            NSS[i].unsqueeze_(0)
-
-        NSS = torch.cat(NSS, 0)
-        NSS = torch.mean(NSS)
-
-        return NSS
+        # input = input.view(input.size(0), -1)
+        #
+        # target = target.view(target.size(0), -1)
+        # mi = target.view(target.size(0), 1, -1).mean(axis=2)
+        # std = target.view(target.size(0), 1, -1).std(axis=2)
+        # torch.unique(target)
+        # NSS = []
+        # target_logic = torch.zeros(b_s, shape_r_out * shape_c_out )
+        #
+        # for i in range(b_s):
+        #
+        #     # normalize the predicted maps
+        #     input_norm = (input[i] - torch.mean(input[i])) / torch.std(input[i])
+        #
+        #     # compute the logic matrix of fixs
+        #     for m in range(shape_r_out * shape_c_out):
+        #         if target[i,m] != 0:
+        #             target_logic[i,m] = 1
+        #
+        #     NSS.append(torch.mean(torch.mul(input_norm, target_logic[i])))
+        #     NSS[i].unsqueeze_(0)
+        #
+        # NSS = torch.cat(NSS, 0)
+        # NSS = torch.mean(NSS)
+        #
+        # return NSS

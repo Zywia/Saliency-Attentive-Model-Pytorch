@@ -80,20 +80,18 @@ def data_spliting():
 
 # generate the txt...
 def txt_generating(txt_path, img_dir, type_str):
-    f = open(txt_path, 'w')
+    f = open(txt_path, 'w+')
 
     for root, s_dirs, _ in os.walk(img_dir, topdown=True):  # obtain the files' name from the img_dir
-        for sub_dir in s_dirs:
-            i_dir = os.path.join(root, sub_dir)
-            img_list = os.listdir(i_dir)
-            for i in range(len(img_list)):
-                if not img_list[i].endswith(type_str):
-                    continue
-                # label = img_list[i].split('_')[0]
-                img_path = os.path.join(i_dir, img_list[i])
-                # line = img_path + ' ' + label + '\n'
-                line = img_path + '\n'
-                f.write(line)
+        img_list = os.listdir(root)
+        for i in range(len(img_list)):
+            if not img_list[i].endswith(type_str):
+                continue
+            # label = img_list[i].split('_')[0]
+            img_path = os.path.join(root, img_list[i])
+            # line = img_path + ' ' + label + '\n'
+            line = img_path + '\n'
+            f.write(line)
     f.close()
     print('Done !')
 
@@ -266,15 +264,15 @@ if __name__ == '__main__':
     if generate_txt:
         # training dataset
         txt_generating(imgs_train_txt_path, imgs_train_path, 'jpg')
-        txt_generating(maps_train_txt_path, maps_train_path, 'jpg')
+        txt_generating(maps_train_txt_path, maps_train_path, 'png')
         txt_generating(fixs_train_txt_path, fixs_train_path, 'mat')
         # validation dataset
         txt_generating(imgs_val_txt_path, imgs_val_path, 'jpg')
-        txt_generating(maps_val_txt_path, maps_val_path, 'jpg')
+        txt_generating(maps_val_txt_path, maps_val_path, 'png')
         txt_generating(fixs_val_txt_path, fixs_val_path, 'mat')
         # testing dataset
         txt_generating(imgs_test_txt_path, imgs_test_path, 'jpg')
-        txt_generating(maps_test_txt_path, maps_test_path, 'jpg')
+        txt_generating(maps_test_txt_path, maps_test_path, 'png')
         txt_generating(fixs_test_txt_path, fixs_test_path, 'mat')
 
     # compute the mean and std of training images
@@ -285,10 +283,11 @@ if __name__ == '__main__':
     train_data, val_data = data_preprocessing()
 
     # load the training and validation dataset
-    train_loader = DataLoader(dataset=train_data, batch_size=b_s, shuffle=True)
-    valid_loader = DataLoader(dataset=val_data, batch_size=b_s, shuffle=True)
-
+    train_loader = DataLoader(dataset=train_data, batch_size=b_s, shuffle=True, drop_last=True)
+    valid_loader = DataLoader(dataset=val_data, batch_size=b_s, shuffle=True, drop_last=True)
+    device = 'cuda'
     # the main loop
+    torch.autograd.set_detect_anomaly(True)
     for epoch in range(nb_epoch):
         loss_sigma = 0.0
         loss_val = 0.0
@@ -297,6 +296,7 @@ if __name__ == '__main__':
         correct_val = 0.0
         total_val = 0.0
         scheduler.step()
+        print(epoch)
 
         for i, data in enumerate(train_loader):
 
@@ -306,6 +306,9 @@ if __name__ == '__main__':
             inputs, maps, fixs = data
             inputs, maps, fixs = Variable(inputs), Variable(maps), Variable(fixs)
 
+            inputs.to(device)
+            maps.to(device)
+            fixs.to(device)
             #debug (check the validation of images and maps)
             # plt.figure
             # show_map = maps[0,0,:,:]

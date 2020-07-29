@@ -9,7 +9,7 @@ mode_debug = 1
 # version sellection
 v_model = 2
 # batch size
-b_s = 4 # be exactly divided by the total number of training as well validation image
+b_s = 32 # be exactly divided by the total number of training as well validation image
 # number of rows of model outputs
 shape_r_out = 480
 # number of cols of model outputs
@@ -49,33 +49,33 @@ valid_per = 0.1
 # the percentage of testing dataset
 test_per = 0.1
 # path of training images
-imgs_train_path = os.path.join('Data', 'imgs_train')
+imgs_train_path = os.path.join('/media/data2/infotech/datasets/salicon/images', 'train')
 # path of training maps
-maps_train_path = os.path.join('Data', 'maps_train')
+maps_train_path = os.path.join('/media/data2/infotech/datasets/salicon/maps', 'train')
 # path of training fixation maps
-fixs_train_path = os.path.join('Data', 'fixs_train')
+fixs_train_path = os.path.join('/media/data2/infotech/datasets/salicon/fixations', 'train')
 # number of training images
 #nb_imgs_train = 0
 # path of validation images
-imgs_val_path = os.path.join('Data', 'imgs_val')
+imgs_val_path = os.path.join('/media/data2/infotech/datasets/salicon/images', 'val')
 # path of validation maps
-maps_val_path = os.path.join('Data', 'maps_val')
+maps_val_path = os.path.join('/media/data2/infotech/datasets/salicon/maps', 'val')
 # path of validation fixation maps
-fixs_val_path = os.path.join('Data', 'fixs_val')
+fixs_val_path = os.path.join('/media/data2/infotech/datasets/salicon/fixations', 'val')
 # number of validation images
 # nb_imgs_val = 0
 # path of testing images
-imgs_test_path = os.path.join('Data', 'imgs_test')
+imgs_test_path = os.path.join('/media/data2/infotech/datasets/salicon/images', 'val')
 # path of testing maps
-maps_test_path = os.path.join('Data', 'maps_test')
+maps_test_path = os.path.join('/media/data2/infotech/datasets/salicon/maps', 'val')
 #path of testing fixation maps
-fixs_test_path = os.path.join('Data', 'fixs_test')
+fixs_test_path = os.path.join('/media/data2/infotech/datasets/salicon/fixations', 'val')
 # number of testing images
 # nb_imgs_test = 0
 # need to split the data ?
 split_data = 0
 #need to generate the corresponding txt ?
-generate_txt = 0
+generate_txt = 1
 # path of txt recording training images
 imgs_train_txt_path = os.path.join('Data', 'imgs_train.txt')
 # path of txt recording training maps
