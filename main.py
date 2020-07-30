@@ -220,7 +220,7 @@ class ZHANGYiNet_REPRO_1(nn.Module):
 
 # ------------------------------------ step 3 : Optimizer and LOSS ----------------------------------------------------
 if __name__ == '__main__':
-
+    # os.mkdir("Data")
     # generate the gaussian priors
     gp = generate_gaussian_prior()
 
@@ -344,7 +344,7 @@ if __name__ == '__main__':
             correct += metric.item()
             total += 1
             loss_sigma += loss.item()
-
+            print(i % loss_steps_logs)
             if i % loss_steps_logs == 0:
                 loss_avg = loss_sigma / loss_steps_logs
                 loss_sigma = 0.0

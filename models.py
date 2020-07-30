@@ -320,10 +320,7 @@ class MyPriors(nn.Module):
     def forward(self, x):
 
         # cancate the generated gaussian priors with the original inputs
-        gp_seq = []
-        for c in range(b_s):
-            gp_seq.append(self.gp)
-        gp_seq = torch.cat(gp_seq, 0)
+        gp_seq = self.gp.repeat(b_s, 1, 1, 1).to(self.device)
         x = torch.cat([gp_seq, x], 1)
 
         # the conv 5*5 (to learn the feature of center bias from generated gaussian kernels)
