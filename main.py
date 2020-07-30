@@ -228,7 +228,7 @@ if __name__ == '__main__':
     net = ZHANGYiNet_REPRO_1(gaussian_prior=gp)
     net.initialize_weights()
 
-    # net.cuda()
+    net.cuda()
 
     # build a Kullback-Leibler divergence
     criterion_KLD = nn.KLDivLoss()
@@ -251,7 +251,6 @@ if __name__ == '__main__':
 
     # define the scheduler for learning rate decreasing
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.1)
-
 
 # ------------------------------------ step 4 : model training ----------------------------------------------
     # initialize the writer
@@ -298,7 +297,6 @@ if __name__ == '__main__':
         total_val = 0.0
         scheduler.step()
         print(epoch)
-
         for i, data in enumerate(train_loader):
 
             # if i > 0:
@@ -307,9 +305,9 @@ if __name__ == '__main__':
             inputs, maps, fixs = data
             inputs, maps, fixs = Variable(inputs), Variable(maps), Variable(fixs)
 
-            inputs.to(device)
-            maps.to(device)
-            fixs.to(device)
+            inputs = inputs.to(device)
+            maps = maps.to(device)
+            fixs = fixs.to(device)
             #debug (check the validation of images and maps)
             # plt.figure
             # show_map = maps[0,0,:,:]
@@ -326,8 +324,8 @@ if __name__ == '__main__':
 
             if epoch == 0:
                 if i == 0:
-                    writer.add_graph(net, inputs)
-
+                    pass
+                    #writer.add_graph(net, inputs)
             # forward
             optimizer.zero_grad()
             outputs = net(inputs)
@@ -338,7 +336,6 @@ if __name__ == '__main__':
 
             # compute metric
             metric = criterion_DC(outputs, maps)
-
             # backward
             loss.backward()
             optimizer.step()
