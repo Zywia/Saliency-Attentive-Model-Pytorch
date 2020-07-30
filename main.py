@@ -397,6 +397,10 @@ if __name__ == '__main__':
                 images, maps, fixs = data
                 images, maps, fixs = Variable(images), Variable(maps), Variable(fixs)
 
+                images = images.to(device)
+                maps = maps.to(device)
+                fixs = fixs.to(device)
+
                 # forward
                 outputs = net(images)
                 outputs.detach_()
