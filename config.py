@@ -9,7 +9,7 @@ mode_debug = 1
 # version sellection
 v_model = 2
 # batch size
-b_s = 32 # be exactly divided by the total number of training as well validation image
+b_s = 16 # be exactly divided by the total number of training as well validation image
 # number of rows of model outputs
 shape_r_out = 480
 # number of cols of model outputs
@@ -19,7 +19,7 @@ shape_r_f = 30
 # number of cols of learned features
 shape_c_f = 40
 # number of epochs
-nb_epoch = 1
+nb_epoch = 10
 # number of timestep
 nb_timestep = 4
 # number of learned priors
@@ -32,6 +32,9 @@ img_W = 320
 pth_pm_1 = os.path.join('pretrained_models', 'resnet50-19c8e357.pth')
 # path of saved parameters
 log_dir = os.path.join('Results')
+
+# number of steps between loss logs
+loss_steps_logs = 10
 
 #########################################################################
 # TRAINING SETTINGS										            	#

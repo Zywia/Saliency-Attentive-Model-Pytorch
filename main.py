@@ -1,26 +1,20 @@
 #------------------------------------- step 0 : Input needed packages ---------------------------------------
-import torch
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-from torchvision.utils import make_grid
-from torchvision.models import resnet50
-import numpy as np
-import os
-from torch.autograd import Variable
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from tensorboardX import SummaryWriter
-from datetime import datetime
-from utilities import MyDataset
-from config import *
 import glob
-import random
 import shutil
-import cv2
-from models import *
-import matplotlib.pyplot as plt
 import warnings
+
+import torch.optim as optim
+import torchvision.transforms as transforms
+from tensorboardX import SummaryWriter
+from torch.autograd import Variable
+from torch.utils.data import DataLoader
+from torchvision.models import resnet50
+from torchvision.utils import make_grid
+
+from config import *
+from models import *
+from utilities import MyDataset
+
 warnings.filterwarnings("ignore")
 
 
@@ -300,8 +294,8 @@ if __name__ == '__main__':
 
         for i, data in enumerate(train_loader):
 
-            if i > 0:
-                break
+            # if i > 0:
+            #     break
 
             inputs, maps, fixs = data
             inputs, maps, fixs = Variable(inputs), Variable(maps), Variable(fixs)
@@ -347,21 +341,21 @@ if __name__ == '__main__':
             total += 1
             loss_sigma += loss.item()
 
-            if i % 1 == 0:
-                loss_avg = loss_sigma / 1
+            if i % loss_steps_logs == 0:
+                loss_avg = loss_sigma / loss_steps_logs
                 loss_sigma = 0.0
                 print("Training: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} Acc:{:.2%}".format(
                     epoch + 1, nb_epoch, i + 1, len(train_loader), loss_avg, correct/total))
 
                 # record training loss
-                writer.add_scalars('Loss_group', {'train_loss': loss_avg}, epoch)
+                writer.add_scalars('Loss_group', {'train_loss': loss_avg}, i)
                 # record learning rate
-                writer.add_scalar('learning rate', scheduler.get_lr()[0], epoch)
+                writer.add_scalar('learning rate', scheduler.get_lr()[0], i)
                 # record accuracy
-                writer.add_scalars('Accuracy_group', {'train_acc': correct / total}, epoch)
+                writer.add_scalars('Accuracy_group', {'train_acc': correct / total}, i)
 
             # model visualization
-            if i % 19 == 0:
+            if i % 59 == 0:
 
                 # visualize the inputs, maps and outputs
                 show_inputs = make_grid(inputs)
@@ -393,8 +387,8 @@ if __name__ == '__main__':
             net.eval()
             for i, data in enumerate(valid_loader):
 
-                if i > 0:
-                    break
+                # if i > 0:
+                #     break
 
                 images, maps, fixs = data
                 images, maps, fixs = Variable(images), Variable(maps), Variable(fixs)
@@ -414,16 +408,16 @@ if __name__ == '__main__':
                 correct_val += metric
                 total_val += 1
 
-                loss_avg_val = loss_val
-                loss_val = 0.0
+            loss_avg_val = loss_val
+            loss_val = 0.0
 
-                print("Validation: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} Acc:{:.2%}".
-                      format(epoch + 1, nb_epoch, i + 1, len(valid_loader), loss_avg_val, correct_val / total_val))
+            print("Validation: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} Acc:{:.2%}".
+                  format(epoch + 1, nb_epoch, i + 1, len(valid_loader), loss_avg_val, correct_val / total_val))
 
-                # record validation loss
-                writer.add_scalars('Loss_group', {'valid_loss': loss_avg_val}, epoch)
-                # record validation accuracy
-                writer.add_scalars('Accuracy_group', {'valid_acc': correct_val / total_val}, epoch)
+            # record validation loss
+            writer.add_scalars('Loss_group', {'valid_loss': loss_avg_val}, epoch)
+            # record validation accuracy
+            writer.add_scalars('Accuracy_group', {'valid_acc': correct_val / total_val}, epoch)
 
     print('finished training !')
 
