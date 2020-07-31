@@ -288,11 +288,11 @@ if __name__ == '__main__':
     device = 'cuda'
     # the main loop
     torch.autograd.set_detect_anomaly(True)
+    total = 0.0
     for epoch in range(nb_epoch):
         loss_sigma = 0.0
         loss_val = 0.0
         correct = 0.0
-        total = 0.0
         correct_val = 0.0
         total_val = 0.0
         scheduler.step()
@@ -349,14 +349,15 @@ if __name__ == '__main__':
                 loss_avg = loss_sigma / loss_steps_logs
                 loss_sigma = 0.0
                 print("Training: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} Acc:{:.2%}".format(
-                    epoch + 1, nb_epoch, i + 1, len(train_loader), loss_avg, correct/total))
+                    epoch + 1, nb_epoch, i + 1, len(train_loader), loss_avg, correct/loss_steps_logs))
 
                 # record training loss
-                writer.add_scalars('Loss_group', {'train_loss': loss_avg}, i)
+                writer.add_scalars('Loss_group', {'train_loss': loss_avg}, total)
                 # record learning rate
-                writer.add_scalar('learning rate', scheduler.get_lr()[0], i)
+                writer.add_scalar('learning rate', scheduler.get_lr()[0], total)
                 # record accuracy
-                writer.add_scalars('Accuracy_group', {'train_acc': correct / total}, i)
+                writer.add_scalars('Accuracy_group', {'train_acc': correct / loss_steps_logs}, total)
+                correct = 0.0
 
             # model visualization
             if i % 59 == 0:
