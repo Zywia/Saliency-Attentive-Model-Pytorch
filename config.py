@@ -9,7 +9,7 @@ mode_debug = 1
 # version sellection
 v_model = 2
 # batch size
-b_s = 8 # be exactly divided by the total number of training as well validation image
+b_s = 16 # be exactly divided by the total number of training as well validation image
 # number of rows of model outputs
 shape_r_out = 480
 # number of cols of model outputs
@@ -114,7 +114,7 @@ epsilon_DC = 0.001
 # the coefficient of NSS
 scal_NSS = -1
 # initialize the learning rate
-lr_init = 0.001
+lr_init = 0.00001
 # learning rate updating
 step_size = 10
 

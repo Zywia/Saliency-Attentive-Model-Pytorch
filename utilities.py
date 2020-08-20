@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from PIL import Image
 import torch
 from scipy.io import loadmat
-from config import shape_r_out, shape_c_out, b_s
+from config import shape_r_out, shape_c_out
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 
@@ -100,7 +100,7 @@ def format_attLSTM(x, nb_ts):
 def fixs_preprocessing(fixs):
 
     fixs_out = []
-    for i in range(b_s):
+    for i in range(fixs.shape[0]):
        img = transforms.ToPILImage()(fixs[i])
        plt.imshow(img)
        plt.show()

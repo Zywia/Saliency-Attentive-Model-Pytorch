@@ -130,7 +130,6 @@ def data_preprocessing():
     normTransform = transforms.Normalize(NormMean_imgs, NormStd_imgs)
     imgsTransform = transforms.Compose([
         transforms.Resize([img_H, img_W]),
-        transforms.
         transforms.ToTensor(), # 0-255 automatically transformed to 0-1
         normTransform
     ])
@@ -235,7 +234,7 @@ if __name__ == '__main__':
     # criterion_KLD.cuda()
 
     # build a dice coefficient
-    criterion_DC = MyDiceCoef()
+    # criterion_DC = MyDiceCoef()
     # criterion_DC.cuda()
 
     # build a correlation coefficient
@@ -254,7 +253,7 @@ if __name__ == '__main__':
 
 # ------------------------------------ step 4 : model training ----------------------------------------------
     # initialize the writer
-    writer = SummaryWriter(log_dir=log_dir, comment='reproducing_01')
+    writer = SummaryWriter()
 
     # generate the training, validation and testing dataset
     if split_data:
@@ -284,16 +283,20 @@ if __name__ == '__main__':
 
     # load the training and validation dataset
     train_loader = DataLoader(dataset=train_data, batch_size=b_s, shuffle=True, drop_last=True)
-    valid_loader = DataLoader(dataset=val_data, batch_size=b_s, shuffle=True, drop_last=True)
+    valid_loader = DataLoader(dataset=val_data, batch_size=64, shuffle=True, drop_last=True)
     device = 'cuda'
     # the main loop
     torch.autograd.set_detect_anomaly(True)
     total = 0.0
-    for epoch in range(nb_epoch):
+    best_validation_loss = np.inf
+    learning_temperature = 0
+
+    # for epoch in range(nb_epoch):
+    epoch = 0
+    while True:
         loss_sigma = 0.0
         loss_val = 0.0
-        correct = 0.0
-        correct_val = 0.0
+        # correct = 0.0
         total_val = 0.0
         scheduler.step()
         print(epoch)
@@ -334,30 +337,28 @@ if __name__ == '__main__':
             loss = scal_KLD * criterion_KLD(outputs, maps) + scal_CC * criterion_CC(outputs, maps)\
                    + scal_NSS * criterion_NSS(outputs, fixs) + 2
 
-            # compute metric
-            metric = criterion_DC(outputs, maps)
             # backward
             loss.backward()
             optimizer.step()
 
             # statistics for predicted information with varied LOSS
-            correct += metric.item()
+            # correct += metric.item()
             total += 1
             loss_sigma += loss.item()
-            print(i % loss_steps_logs)
-            if i % loss_steps_logs == 0:
+            # print(i % loss_steps_logs)
+            if i % loss_steps_logs == loss_steps_logs - 1:
                 loss_avg = loss_sigma / loss_steps_logs
                 loss_sigma = 0.0
-                print("Training: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} Acc:{:.2%}".format(
-                    epoch + 1, nb_epoch, i + 1, len(train_loader), loss_avg, correct/loss_steps_logs))
+                print("Training: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} ".format(
+                    epoch + 1, nb_epoch, i + 1, len(train_loader), loss_avg))
 
                 # record training loss
                 writer.add_scalars('Loss_group', {'train_loss': loss_avg}, total)
                 # record learning rate
                 writer.add_scalar('learning rate', scheduler.get_lr()[0], total)
                 # record accuracy
-                writer.add_scalars('Accuracy_group', {'train_acc': correct / loss_steps_logs}, total)
-                correct = 0.0
+                # writer.add_scalars('Accuracy_group', {'train_acc': correct / loss_steps_logs}, total)
+                # correct = 0.0
 
             # model visualization
             if i % 59 == 0:
@@ -390,70 +391,75 @@ if __name__ == '__main__':
 
         if epoch % 1 == 0:
             net.eval()
-            for i, data in enumerate(valid_loader):
+            cc_sum = 0
+            nss_sum = 0
 
-                # if i > 0:
-                #     break
+            with torch.no_grad():
+                for i, data in enumerate(valid_loader):
 
-                images, maps, fixs = data
-                images, maps, fixs = Variable(images), Variable(maps), Variable(fixs)
+                    # if i > 0:
+                    #     break
 
-                images = images.to(device)
-                maps = maps.to(device)
-                fixs = fixs.to(device)
+                    images, maps, fixs = data
+                    images, maps, fixs = Variable(images), Variable(maps), Variable(fixs)
 
-                # forward
-                outputs = net(images)
-                outputs.detach_()
+                    images = images.to(device)
+                    maps = maps.to(device)
+                    fixs = fixs.to(device)
 
-                # compute loss ("2" is an experiential default)
-                loss = scal_KLD * criterion_KLD(outputs, maps) + scal_CC * criterion_CC(outputs, maps) \
-                       + scal_NSS * criterion_NSS(outputs, fixs) + 2
+                    # forward
+                    outputs = net(images)
+                    # outputs.detach_()
 
-                # compute metric
-                metric = criterion_DC(outputs, maps)
+                    # compute loss ("2" is an experiential default)
 
-                loss_val += loss.item()
-                correct_val += metric
-                total_val += 1
+                    cc = criterion_CC(outputs, maps)
+                    nss = criterion_NSS(outputs, fixs)
+                    loss = scal_KLD * criterion_KLD(outputs, maps) + scal_CC * cc \
+                           + scal_NSS * nss + 2
 
-            loss_avg_val = loss_val
+                    # compute metric
+                    # metric = criterion_DC(outputs, maps)
+
+                    loss_val += loss.item()
+                    cc_sum += cc.item()
+                    nss_sum += nss.item()
+                    # correct_val += metric
+                    total_val += 1
+            net.train()
+            loss_avg_val = loss_val / len(valid_loader)
+            cc_sum /= len(valid_loader)
+            nss_sum /= len(valid_loader)
             loss_val = 0.0
 
-            print("Validation: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} Acc:{:.2%}".
-                  format(epoch + 1, nb_epoch, i + 1, len(valid_loader), loss_avg_val, correct_val / total_val))
+            # print("Validation: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} Acc:{:.2%}".
+            #       format(epoch + 1, nb_epoch, i + 1, len(valid_loader), loss_avg_val, correct_val / total_val))
 
             # record validation loss
-            writer.add_scalars('Loss_group', {'valid_loss': loss_avg_val}, epoch)
+            writer.add_scalars('validation_loss_group', {'valid_loss': loss_avg_val}, epoch)
+            writer.add_scalars('validation_loss_group', {'CC': cc_sum}, epoch)
+            writer.add_scalars('validation_loss_group', {'NSS': nss_sum}, epoch)
+
+            learning_temperature += 1
+            if loss_avg_val < best_validation_loss:
+                best_validation_loss = loss_avg_val
+                net_save_path = os.path.join(log_dir, 'net_params_second_attempt.pkl')
+                torch.save(net.state_dict(), net_save_path)
+                learning_temperature = 0
+
+            if learning_temperature == 5:
+                break
             # record validation accuracy
-            writer.add_scalars('Accuracy_group', {'valid_acc': correct_val / total_val}, epoch)
+            # writer.add_scalars('Accuracy_group', {'valid_acc': correct_val / total_val}, epoch)
+        epoch += 1
 
     print('finished training !')
 
 
 # ------------------------------------ step 5 : model saving ------------------------------------------------
 
-    net_save_path = os.path.join(log_dir, 'net_params.pkl')
-    torch.save(net.state_dict(), net_save_path)
+    # net_save_path = os.path.join(log_dir, 'net_params.pkl')
+    # torch.save(net.state_dict(), net_save_path)
 
     # the end
     print('job done !')
-
-    # debug (to check the model's graph)
-    # for i, data in enumerate(train_loader):
-    #     inputs, maps = data
-    #     inputs, maps = Variable(inputs), Variable(maps)
-    #     if i == 0:
-    #         with writer:
-    #             writer.add_graph(net, inputs)
-    #         print('successful debugging')
-    #
-    #     optimizer.zero_grad()
-    #     outputs = net(inputs)
-    #
-    #     loss = -1 * (scal_KLD * criterion_KLD(outputs, maps) + scal_CC * criterion_CC(outputs, maps))
-    #
-    #     loss.backward()
-    #     optimizer.step()
-    #
-    #     break
