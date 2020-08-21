@@ -430,18 +430,25 @@ class MyCorrCoef(nn.Module):
 
         CC = []
 
-        for i in range(input.shape[0]):
-            im = input[i] - torch.mean(input[i])
-            tm = target[i] - torch.mean(target[i])
+        im = input - torch.mean(input, dim=1)[:, None]
+        tm = target - torch.mean(target, dim=1)[:, None]
+        CC = torch.mean(im * tm, dim=1 ) / (torch.sqrt(torch.mean(im ** 2, dim=1))
+                                            * torch.sqrt(torch.mean(tm ** 2, dim=1)))
 
-            CC.append(torch.sum(im * tm) / (torch.sqrt(torch.sum(im ** 2))
-                                            * torch.sqrt(torch.sum(tm ** 2))))
-            CC[i].unsqueeze_(0)
+        return CC.mean()
 
-        CC = torch.cat(CC, 0)
-        CC = torch.mean(CC)
+        # for i in range(input.shape[0]):
+        #     im = input[i] - torch.mean(input[i])
+        #     tm = target[i] - torch.mean(target[i])
+        #
+        #     CC.append(torch.sum(im * tm) / (torch.sqrt(torch.sum(im ** 2))
+        #                                     * torch.sqrt(torch.sum(tm ** 2))))
+        #     CC[i].unsqueeze_(0)
+        #
+        # CC = torch.cat(CC, 0)
+        # CC = torch.mean(CC)
 
-        return CC
+        # return CC
 
 
 class MyNormScanSali(nn.Module):
@@ -459,7 +466,7 @@ class MyNormScanSali(nn.Module):
         mi = input.view(input.size(0), 1, -1).mean(axis=2)
         std = input.view(input.size(0), 1, -1).std(axis=2)
         return torch.mean(torch.sum(((input - mi[:, :, None, None]) / std[:, :, None, None] * target)
-                                    .view(input.size(0), -1), dim=1) / torch.sum(target.view(input.size(0), -1)))
+                                    .view(input.size(0), -1), dim=1) / torch.sum(target.view(input.size(0), -1), dim=1))
 
         # input = input.view(input.size(0), -1)
         #

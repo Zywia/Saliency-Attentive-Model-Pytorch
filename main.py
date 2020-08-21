@@ -436,14 +436,14 @@ if __name__ == '__main__':
             #       format(epoch + 1, nb_epoch, i + 1, len(valid_loader), loss_avg_val, correct_val / total_val))
 
             # record validation loss
-            writer.add_scalars('validation_loss_group', {'valid_loss': loss_avg_val}, epoch)
-            writer.add_scalars('validation_loss_group', {'CC': cc_sum}, epoch)
-            writer.add_scalars('validation_loss_group', {'NSS': nss_sum}, epoch)
+            writer.add_scalars('validation_loss', {'valid_loss': loss_avg_val}, epoch)
+            writer.add_scalars('CC', {'CC': cc_sum}, epoch)
+            writer.add_scalars('NSS', {'NSS': nss_sum}, epoch)
 
             learning_temperature += 1
             if loss_avg_val < best_validation_loss:
                 best_validation_loss = loss_avg_val
-                net_save_path = os.path.join(log_dir, 'net_params_second_attempt.pkl')
+                net_save_path = os.path.join(log_dir, 'net_params_third_attempt.pkl')
                 torch.save(net.state_dict(), net_save_path)
                 learning_temperature = 0
 
