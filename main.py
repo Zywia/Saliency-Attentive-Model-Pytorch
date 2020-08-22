@@ -298,7 +298,7 @@ if __name__ == '__main__':
         loss_val = 0.0
         # correct = 0.0
         total_val = 0.0
-        scheduler.step()
+
         print(epoch)
         for i, data in enumerate(train_loader):
 
@@ -452,6 +452,7 @@ if __name__ == '__main__':
             # record validation accuracy
             # writer.add_scalars('Accuracy_group', {'valid_acc': correct_val / total_val}, epoch)
         epoch += 1
+        scheduler.step()
 
     print('finished training !')
 
