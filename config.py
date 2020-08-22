@@ -9,7 +9,7 @@ mode_debug = 1
 # version sellection
 v_model = 2
 # batch size
-b_s = 8 # be exactly divided by the total number of training as well validation image
+b_s = 15 # be exactly divided by the total number of training as well validation image
 # number of rows of model outputs
 shape_r_out = 480
 # number of cols of model outputs
@@ -34,7 +34,7 @@ pth_pm_1 = os.path.join('pretrained_models', 'resnet50-19c8e357.pth')
 log_dir = os.path.join('Results')
 
 # number of steps between loss logs
-loss_steps_logs = 10
+loss_steps_logs = 100
 
 #########################################################################
 # TRAINING SETTINGS										            	#
@@ -116,7 +116,7 @@ scal_NSS = -1
 # initialize the learning rate
 lr_init = 0.00001
 # learning rate updating
-step_size = 10
+step_size = 2
 
 # feature_channel = 512
 # upsampling factor = 240/30 = 8
