@@ -246,7 +246,7 @@ if __name__ == '__main__':
     # criterion_NSS.cuda()
 
     # define the optimizer
-    optimizer = optim.SGD(net.parameters(), lr=lr_init, momentum=0.9, dampening=0.1)
+    optimizer = optim.RMSprop(net.parameters(), lr=1e-5)
 
     # define the scheduler for learning rate decreasing
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.1)
@@ -342,9 +342,9 @@ if __name__ == '__main__':
             optimizer.step()
 
             # statistics for predicted information with varied LOSS
-            # correct += metric.item()
+            # correct += metric.detach().item()
             total += 1
-            loss_sigma += loss.item()
+            loss_sigma += loss.detach().item()
             # print(i % loss_steps_logs)
             if i % loss_steps_logs == loss_steps_logs - 1:
                 loss_avg = loss_sigma / loss_steps_logs
@@ -421,9 +421,9 @@ if __name__ == '__main__':
                     # compute metric
                     # metric = criterion_DC(outputs, maps)
 
-                    loss_val += loss.item()
-                    cc_sum += cc.item()
-                    nss_sum += nss.item()
+                    loss_val += loss.detach().item()
+                    cc_sum += cc.detach().item()
+                    nss_sum += nss.detach().item()
                     # correct_val += metric
                     total_val += 1
             net.train()

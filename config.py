@@ -9,7 +9,7 @@ mode_debug = 1
 # version sellection
 v_model = 2
 # batch size
-b_s = 15 # be exactly divided by the total number of training as well validation image
+b_s = 10 # be exactly divided by the total number of training as well validation image
 # number of rows of model outputs
 shape_r_out = 480
 # number of cols of model outputs
