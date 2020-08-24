@@ -246,7 +246,7 @@ if __name__ == '__main__':
     # criterion_NSS.cuda()
 
     # define the optimizer
-    optimizer = optim.RMSprop(net.parameters(), lr=1e-5)
+    optimizer = optim.RMSprop(net.parameters(), lr=1e-4)
 
     # define the scheduler for learning rate decreasing
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.1)
@@ -443,7 +443,7 @@ if __name__ == '__main__':
             learning_temperature += 1
             if loss_avg_val < best_validation_loss:
                 best_validation_loss = loss_avg_val
-                net_save_path = os.path.join(log_dir, 'net_params_third_attempt.pkl')
+                net_save_path = os.path.join(log_dir, 'net_params_fourth_attempt.pkl')
                 torch.save(net.state_dict(), net_save_path)
                 learning_temperature = 0
 
